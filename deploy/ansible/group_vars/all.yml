@@ -1,0 +1,2 @@
+app_image: "{{ lookup('env','DOCKERHUB_USERNAME') | default('youruser') }}/boatapp:latest"
+app_port: 8000

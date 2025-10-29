@@ -1,0 +1,8 @@
+---
+- name: Run container
+  community.docker.docker_container:
+    name: boatapp
+    image: "{{ app_image }}"
+    ports:
+      - "80:{{ app_port }}"
+    restart_policy: unless-stopped

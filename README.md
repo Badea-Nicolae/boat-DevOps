@@ -1,2 +1,3 @@
-# boat-DdevOps
-Proiect final DevOps Pithons + Docker + CI/CD + Ansible +Teraform
+# Boat DevOps Project
+
+Aplicatie DevOps pentru barcă: monitorizare motor și waypoints. Include CI/CD, Docker, Ansible, Terraform și Prometheus.
