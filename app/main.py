@@ -1,42 +1,59 @@
-from flask import Flask, jsonify, request
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field
+from typing import Dict, List
+import uuid
 
-app = Flask(__name__)
+app = FastAPI(title="Boat DevOps API", version="1.0.0")
 
-ENGINE = {"rpm": 0, "coolant_temp": 70.0, "oil_pressure": 2.0, "status": "idle"}
-WAYPOINTS = [
-    {"id": 1, "name": "Port Tulcea", "lat": 45.186, "lon": 28.805},
-    {"id": 2, "name": "Canal Sulina (mm10)", "lat": 45.158, "lon": 29.659},
-]
+# --- MODELE ---
+class EngineData(BaseModel):
+    rpm: int = Field(..., ge=0)
+    coolant_temp: float = Field(..., ge=-50, le=150)
+    oil_pressure: float = Field(..., ge=0)
 
-@app.get("/health")
+class WaypointIn(BaseModel):
+    name: str
+    lat: float
+    lon: float
+
+class Waypoint(WaypointIn):
+    id: str
+
+# --- STATE IN-MEMORY ---
+engine_state: Dict[str, float | int] = {
+    "rpm": 0,
+    "coolant_temp": 70.0,
+    "oil_pressure": 2.5,
+}
+waypoints: Dict[str, Waypoint] = {}
+
+# --- ENDPOINTS ---
+@app.get("/api/v1/health")
 def health():
-    return {"status": "ok"}, 200
+    return {"status": "ok"}
 
-@app.get("/engine")
+@app.get("/api/v1/engine")
 def get_engine():
-    return jsonify(ENGINE)
+    return engine_state
 
-@app.post("/engine")
-def update_engine():
-    data = request.get_json() or {}
-    for k in ("rpm", "coolant_temp", "oil_pressure", "status"):
-        if k in data:
-            ENGINE[k] = data[k]
-    return jsonify(ENGINE), 200
+@app.post("/api/v1/engine", status_code=201)
+def update_engine(data: EngineData):
+    engine_state.update(data.model_dump())
+    return engine_state
 
-@app.get("/waypoints")
+@app.get("/api/v1/waypoints", response_model=List[Waypoint])
 def list_waypoints():
-    return jsonify(WAYPOINTS)
+    return list(waypoints.values())
 
-@app.post("/waypoints")
-def add_waypoint():
-    data = request.get_json() or {}
-    if not all(k in data for k in ("name", "lat", "lon")):
-        return {"error": "name, lat, lon required"}, 400
-    new_id = max([w["id"] for w in WAYPOINTS] or [0]) + 1
-    wp = {"id": new_id, "name": data["name"], "lat": float(data["lat"]), "lon": float(data["lon"])}
-    WAYPOINTS.append(wp)
-    return wp, 201
+@app.post("/api/v1/waypoints", response_model=Waypoint, status_code=201)
+def add_waypoint(item: WaypointIn):
+    wid = str(uuid.uuid4())[:8]
+    wp = Waypoint(id=wid, **item.model_dump())
+    waypoints[wid] = wp
+    return wp
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000)
+@app.delete("/api/v1/waypoints/{wid}", status_code=204)
+def delete_waypoint(wid: str):
+    if wid not in waypoints:
+        raise HTTPException(status_code=404, detail="Waypoint not found")
+    del waypoints[wid]
