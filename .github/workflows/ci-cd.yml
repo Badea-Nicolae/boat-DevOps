@@ -40,4 +40,4 @@ jobs:
       # ⿦ Rulează containerul din imaginea creată
       - name: Run container
         run: |
-          docker run -d --name boat-app boat-devops-app
+          docker run -d -p 8000:8000 --name boat-app boat-devops-app
