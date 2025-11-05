@@ -1,0 +1,9 @@
+services:
+  api:
+    build: .
+    image: boat-app:latest
+    container_name: boat-app
+    ports:
+      - "8000:8000"
+    environment:
+      ENV: dev
