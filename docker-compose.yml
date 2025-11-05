@@ -1,9 +1,12 @@
+version: "3.9"
+
 services:
-  api:
+  app:
     build: .
-    image: boat-app:latest
     container_name: boat-app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
     ports:
       - "8000:8000"
-    environment:
-      ENV: dev
+    volumes:
+      - .:/code
+    restart: always
