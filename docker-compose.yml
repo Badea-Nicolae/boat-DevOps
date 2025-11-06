@@ -4,9 +4,21 @@ services:
   app:
     build: .
     container_name: boat-app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    command: uvicorn app.main:app --host 0.0.0.0  --port 8000
     ports:
       - "8000:8000"
+<<<<<<< HEAD
     volumes:
       - "./app:/app/app"
     restart: always
+=======
+    restart: always
+
+
+
+
+
+
+
+
+>>>>>>> a872300 (Fix identare in docker-compose.yml)
